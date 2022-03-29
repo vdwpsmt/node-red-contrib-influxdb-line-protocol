@@ -62,7 +62,7 @@ function joinObject(obj, withFormatting, config) {
   return Object.keys(obj)
     .map(key => {
       let override = config.typeMappings.find( (i) => i.fieldName == key);
-      let numType = override?.fieldType || config.defaultTypeMapping;
+      let numType = override.fieldType || config.defaultTypeMapping;
       return `${key}=${withFormatting ? formatValue(obj[key], numType) : obj[key]}`
     })
     .join(',')
@@ -71,17 +71,17 @@ function joinObject(obj, withFormatting, config) {
 function parse(point, config) {
   const result = {}
 
-  const [tags_, fields_, timestamp] = point.split(' ')
+  const [tags_, fields_, timestamp] = point.split(/(?<!\\)\s/g)
 
-  const tags = (tags_ || '').split(',')
-  const fields = (fields_ || '').split(',')
+  const tags = (tags_ || '').split(/(?<!\\),/g)
+  const fields = (fields_ || '').split(/(?<!\\),/g)
 
   result.measurement = tags.shift()
 
   result.tags = tags.reduce((out, tag) => {
     if (!tag) return out
     var [key, value] = tag.split('=')
-    out[key] = value
+    out[key] = value.replace(/\\/g,'')
     return out
   }, {})
 
